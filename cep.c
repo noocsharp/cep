@@ -195,6 +195,13 @@ cep_nextop()
 		return -1;
 	}
 
+	unsigned char *cmd = malloc(16 + op->icount);
+	if (cmd == NULL) {
+		free(new);
+		pthread_mutex_unlock(&cep.mut);
+		return -1;
+	}
+
 	assert(op->offset <= cep.len);
 
 	memcpy(new, before, op->offset);
@@ -218,12 +225,6 @@ cep_nextop()
 		cep.applied_last = op;
 	} else {
 		cep.applied = cep.applied_last = op;
-	}
-
-	// TODO: should we attempt this allocation before we commit to performing the op?
-	unsigned char *cmd = malloc(16 + op->icount);
-	if (cmd == NULL) {
-		// TODO: handle
 	}
 
 	cep.curversion += 1;
