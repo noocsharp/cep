@@ -171,15 +171,6 @@ cep_nextop()
 
 	struct op* op = cep.unapplied;
 
-	// FIXME: reallocating on every change is silly
-	unsigned char *before = cep.ptr, *after = cep.ptr + op->offset;
-	unsigned char *new = malloc(cep.len + op->icount - op->dcount);
-	// FIXME: this is probably not correct
-	if (new == NULL) {
-		pthread_mutex_unlock(&cep.mut);
-		return -1;
-	}
-
 	// TODO: adjust op relative to previous ops
 	for (struct op *aop = cep.applied; aop != NULL; aop = aop->next) {
 		if (aop->version < op->version || aop->client == op->client)
@@ -193,6 +184,15 @@ cep_nextop()
 
 		// TODO: handle other cases
 		op->version += 1;
+	}
+
+	// FIXME: reallocating on every change is silly
+	unsigned char *before = cep.ptr, *after = cep.ptr + op->offset;
+	unsigned char *new = malloc(cep.len + op->icount - op->dcount);
+	// FIXME: this is probably not correct
+	if (new == NULL) {
+		pthread_mutex_unlock(&cep.mut);
+		return -1;
 	}
 
 	assert(op->offset <= cep.len);
