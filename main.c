@@ -30,28 +30,20 @@ extern struct buffer buffer;
 
 void onopen(ws_cli_conn_t *client)
 {
-	struct client_state *cstate = calloc(1, sizeof *cstate);
-	if (cstate == NULL) {
-		// TODO: send error?
-		ws_close_client(client);
-		return;
-	}
-
-	ws_client_set_data(client, cstate);
+	cep_newclient(client);
 }
 
 void onclose(ws_cli_conn_t *client)
 {
-	struct client_state *cstate = ws_client_get_data(client);
-	free(cstate);
+	cep_closeclient(client);
 }
 
 void onmessage(ws_cli_conn_t *client,
 	const unsigned char *msg, uint64_t size, int type)
 {
-	struct client_state *cstate = ws_client_get_data(client);
+	struct client *cepclient = ws_client_get_data(client);
 	// TODO: should we close client on invalid message?
-	if (size < 16 || type == WS_FR_OP_TXT)
+	if (size < 16 || type != WS_FR_OP_BIN)
 		return;
 
 	uint32_t version = le32toh(*(uint32_t *)(msg));
@@ -63,7 +55,7 @@ void onmessage(ws_cli_conn_t *client,
 		return;
 
 	const unsigned char *data = icount ? msg + 16 : NULL;
-	cep_add(cstate, version, offset, dcount, icount, data);
+	cep_add(cepclient, version, offset, dcount, icount, data);
 }
 
 int main(void)
