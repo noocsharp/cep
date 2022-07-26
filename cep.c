@@ -187,7 +187,7 @@ cep_nextop()
 	}
 
 	// FIXME: reallocating on every change is silly
-	unsigned char *before = cep.ptr, *after = cep.ptr + op->offset;
+	unsigned char *before = cep.ptr, *after = cep.ptr + op->offset + op->dcount;
 	unsigned char *new = malloc(cep.len + op->icount - op->dcount);
 	// FIXME: this is probably not correct
 	if (new == NULL) {
@@ -199,7 +199,7 @@ cep_nextop()
 
 	memcpy(new, before, op->offset);
 	memcpy(new + op->offset, op->data, op->icount);
-	memcpy(new + op->offset + op->icount - op->dcount, after, cep.len - op->offset);
+	memcpy(new + op->offset + op->icount, after, cep.len - op->offset - op->dcount);
 
 	free(cep.ptr);
 	cep.ptr = new;
